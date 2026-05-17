@@ -2,27 +2,35 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <fstream>              // Required for file streams
+#include "nlohmann/json.hpp"    // Required for JSON parsing
+using json = nlohmann::json;
 
 ExerciseCatalog::ExerciseCatalog() {
-    entries = {
-        {"Bench Press",      "Chest",      "Strength", "barbell",    "Compound push movement"},
-        {"Incline DB Press", "Chest",      "Strength", "dumbbell",   "Upper chest focus"},
-        {"Cable Fly",        "Chest",      "Strength", "machine",    "Isolation movement"},
-        {"Squat",            "Legs",       "Strength", "barbell",    "King of leg exercises"},
-        {"Leg Press",        "Legs",       "Strength", "machine",    "Quad dominant"},
-        {"Romanian DL",      "Hamstrings", "Strength", "barbell",    "Hip hinge pattern"},
-        {"Deadlift",         "Back",       "Strength", "barbell",    "Full body compound"},
-        {"Pull-up",          "Back",       "Strength", "bodyweight", "Vertical pull"},
-        {"Barbell Row",      "Back",       "Strength", "barbell",    "Horizontal pull"},
-        {"Overhead Press",   "Shoulders",  "Strength", "barbell",    "Vertical push"},
-        {"Lateral Raise",    "Shoulders",  "Strength", "dumbbell",   "Medial delt isolation"},
-        {"Bicep Curl",       "Biceps",     "Strength", "dumbbell",   "Elbow flexion"},
-        {"Tricep Pushdown",  "Triceps",    "Strength", "machine",    "Elbow extension"},
-        {"Plank",            "Core",       "Strength", "bodyweight", "Anti-extension"},
-        {"Running",          "Cardio",     "Cardio",   "",           "Steady state cardio"},
-        {"Cycling",          "Cardio",     "Cardio",   "",           "Low impact cardio"},
-        {"Jump Rope",        "Cardio",     "Cardio",   "",           "High intensity cardio"},
-    };
+    // Instead of hardcoding, we attempt to load from the JSON file on initialization
+    std::ifstream file("exercises.json");
+    if (!file.is_open()) {
+        std::cerr << "Warning: Could not open exercises.json. Starting with an empty catalog.\n";
+        return;
+    }
+
+    try {
+        json j;
+        file >> j; // Parse the JSON file
+
+        for (const auto& item : j) {
+            // Map the JSON keys to your struct fields
+            entries.push_back({
+                item.value("name", "Unknown"),
+                item.value("muscleGroup", "Unknown"),
+                item.value("type", "Unknown"),
+                item.value("equipment", ""),
+                item.value("description", "")
+            });
+        }
+    } catch (const json::parse_error& e) {
+        std::cerr << "JSON Parse Error: " << e.what() << "\n";
+    }
 }
 
 void ExerciseCatalog::addEntry(const std::string& name, const std::string& mg,

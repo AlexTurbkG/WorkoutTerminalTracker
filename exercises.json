@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Bench Press",
+    "muscleGroup": "Chest",
+    "type": "Strength",
+    "equipment": "barbell",
+    "description": "Compound push movement"
+  },
+  {
+    "name": "Incline DB Press",
+    "muscleGroup": "Chest",
+    "type": "Strength",
+    "equipment": "dumbbell",
+    "description": "Upper chest focus"
+  },
+  {
+    "name": "Squat",
+    "muscleGroup": "Legs",
+    "type": "Strength",
+    "equipment": "barbell",
+    "description": "King of leg exercises"
+  }
+]
