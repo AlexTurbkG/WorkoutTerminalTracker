@@ -1,11 +1,8 @@
-Sasho
-16
-73
+
+0
 0
 1
-2026-4-27|48|Good|
+ 0
 1
-Strength|Incline Bench Press|Chest||Barbell
-2
-60 6 120
-60 4 120
+2026-05-28|67|Good|
+0

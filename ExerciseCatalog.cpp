@@ -2,34 +2,33 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
-#include <fstream>              // Required for file streams
-#include "nlohmann/json.hpp"    // Required for JSON parsing
+#include <fstream>
+#include "nlohmann/json.hpp"
 using json = nlohmann::json;
 
 ExerciseCatalog::ExerciseCatalog() {
-    // Instead of hardcoding, we attempt to load from the JSON file on initialization
     std::ifstream file("exercises.json");
     if (!file.is_open()) {
-        std::cerr << "Warning: Could not open exercises.json. Starting with an empty catalog.\n";
+        std::cerr << "  Warning: Could not open exercises.json. Starting with empty catalog.\n";
         return;
     }
-
     try {
         json j;
-        file >> j; // Parse the JSON file
-
+        file >> j;
         for (const auto& item : j) {
-            // Map the JSON keys to your struct fields
             entries.push_back({
-                item.value("name", "Unknown"),
+                item.value("name",        "Unknown"),
                 item.value("muscleGroup", "Unknown"),
-                item.value("type", "Unknown"),
-                item.value("equipment", ""),
+                item.value("type",        "Strength"),
+                item.value("equipment",   ""),
                 item.value("description", "")
             });
         }
+        // Keep entries sorted by name for consistent display
+        std::sort(entries.begin(), entries.end(),
+            [](const Entry& a, const Entry& b){ return a.name < b.name; });
     } catch (const json::parse_error& e) {
-        std::cerr << "JSON Parse Error: " << e.what() << "\n";
+        std::cerr << "  JSON Parse Error: " << e.what() << "\n";
     }
 }
 
@@ -40,29 +39,29 @@ void ExerciseCatalog::addEntry(const std::string& name, const std::string& mg,
 }
 
 void ExerciseCatalog::listAll() const {
-    std::cout << "\n--- Exercise Catalog ---\n";
+    std::cout << "\n  --- Exercise Catalog ---\n";
     auto sorted = entries;
     std::sort(sorted.begin(), sorted.end(),
-        [](const CatalogEntry& a, const CatalogEntry& b){ return a.muscleGroup < b.muscleGroup; });
+        [](const Entry& a, const Entry& b){ return a.muscleGroup < b.muscleGroup; });
     std::string lastMG;
     for (const auto& e : sorted) {
         if (e.muscleGroup != lastMG) {
-            std::cout << "\n[" << e.muscleGroup << "]\n";
+            std::cout << "\n  \xe2\x96\xb8 " << e.muscleGroup << "\n";
             lastMG = e.muscleGroup;
         }
-        std::cout << "  " << std::left << std::setw(20) << e.name
-                  << " | " << std::setw(10) << e.type
-                  << " | " << e.equipment << "\n";
+        std::cout << "    " << std::left << std::setw(34) << e.name
+                  << std::setw(12) << e.type
+                  << e.equipment << "\n";
     }
     std::cout << "\n";
 }
 
 void ExerciseCatalog::listByMuscle(const std::string& mg) const {
-    std::cout << "\n--- Exercises for: " << mg << " ---\n";
+    std::cout << "\n  --- " << mg << " ---\n";
     bool found = false;
     for (const auto& e : entries) {
         if (e.muscleGroup == mg) {
-            std::cout << "  " << e.name << " [" << e.type << "] " << e.equipment << "\n";
+            std::cout << "    " << e.name << "  [" << e.type << "]  " << e.equipment << "\n";
             found = true;
         }
     }

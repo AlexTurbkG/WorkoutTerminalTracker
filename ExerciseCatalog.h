@@ -3,21 +3,26 @@
 #include <vector>
 
 class ExerciseCatalog {
-private:
-    struct CatalogEntry {
+public:
+    struct Entry {
         std::string name;
         std::string muscleGroup;
         std::string type;
         std::string equipment;
         std::string description;
     };
-    std::vector<CatalogEntry> entries;
+
+private:
+    std::vector<Entry> entries;
 
 public:
     ExerciseCatalog();
 
     void addEntry(const std::string& name, const std::string& mg,
                   const std::string& type, const std::string& eq, const std::string& desc);
+
+    // Returns all entries for the browser
+    const std::vector<Entry>& getAllEntries() const { return entries; }
 
     void listAll() const;
     void listByMuscle(const std::string& mg) const;
