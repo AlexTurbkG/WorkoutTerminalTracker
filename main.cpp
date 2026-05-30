@@ -57,10 +57,10 @@ static void printMainMenu(const User& user) {
     row(1, "\xf0\x9f\x8f\x8b", "Log New Workout");
     row(2, "\xf0\x9f\x93\x96", "Workout History");
     row(3, "\xf0\x9f\x8f\x86", "Personal Records");
-    row(4, "\xf0\x9f\x93\x88", "Volume Progress Chart");
+    row(4, "\xf0\x9f\x93\x8a", "Progress Charts");
     row(5, "\xf0\x9f\x93\x85", "Weekly Summary");
     row(6, "\xe2\x9a\x96 ", "Body Weight Tracker");
-    row(7, "\xf0\x9f\x92\xaa", "Muscle Frequency");
+    row(7, "\xf0\x9f\x92\xaa", "Strength Standards");
     row(8, "\xf0\x9f\xa7\xae", "1RM Calculator");
     row(9, "\xf0\x9f\x93\x8b", "Workout Templates");
 
@@ -125,8 +125,28 @@ int main() {
             case 2: menuWorkoutHistory(*user);  break;
             case 3: menuEditPRs(*user);         break;
             case 4: {
-                std::string exName = inputLine("Exercise name for chart: ");
-                ProgressTracker::volumeProgressChart(user->getWorkouts(), exName);
+                // Progress charts submenu
+                std::cout << "\n  \033[1;36m\xe2\x96\xba Progress Charts\033[0m\n"
+                          << "  " << std::string(72, '-') << "\n"
+                          << "    \033[36m[1]\033[0m Volume progress  (per exercise)\n"
+                          << "    \033[36m[2]\033[0m Volume by muscle group\n"
+                          << "    \033[36m[3]\033[0m Workout heatmap\n"
+                          << "    \033[36m[4]\033[0m Body weight chart\n"
+                          << "    \033[36m[5]\033[0m Muscle frequency\n"
+                          << "    \033[36m[0]\033[0m Back\n";
+                int sub = inputInt("> ");
+                switch (sub) {
+                    case 1: {
+                        std::string ex = inputLine("Exercise name: ");
+                        ProgressTracker::volumeProgressChart(user->getWorkouts(), ex);
+                        break;
+                    }
+                    case 2: ProgressTracker::muscleVolumeChart(user->getWorkouts()); break;
+                    case 3: ProgressTracker::workoutHeatmap(user->getWorkouts());    break;
+                    case 4: ProgressTracker::bodyWeightChart(user->getBWLog());      break;
+                    case 5: menuMuscleFrequency(*user);                              break;
+                    default: break;
+                }
                 break;
             }
             case 5: {
@@ -134,10 +154,14 @@ int main() {
                 ProgressTracker::weeklySummary(user->getWorkouts(), date);
                 break;
             }
-            case 6: menuBodyWeight(*user);       break;
-            case 7: menuMuscleFrequency(*user);  break;
-            case 8: menuCalc1RM();               break;
-            case 9: menuTemplates(*user);        break;
+            case 6: menuBodyWeight(*user); break;
+            case 7: {
+                ProgressTracker::strengthStandards(
+                    user->getPRs(), user->getWeight());
+                break;
+            }
+            case 8: menuCalc1RM();         break;
+            case 9: menuTemplates(*user);  break;
             default:
                 std::cout << "  \033[31m\xe2\x9c\x96  Invalid choice. Pick 0-9.\033[0m\n";
         }
