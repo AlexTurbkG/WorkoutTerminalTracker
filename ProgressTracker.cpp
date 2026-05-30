@@ -402,23 +402,26 @@ void ProgressTracker::workoutHeatmap(const std::vector<Workout*>& workouts) {
     const char* dowLabels[] = {"Su","Mo","Tu","We","Th","Fr","Sa"};
 
     // Print month labels across the top
-    std::cout << "  " << C::BOLD << "     "; // indent for row labels
+    // Each cell = "██ " = 3 visible columns. Use plain printf-style padding.
+    std::cout << "  " << C::BOLD << "      "; // indent to align with row labels
     int prevMonth = -1;
     for (int w = 0; w < WEEKS; w++) {
         int jd = startJD + w*7;
         int y, m, d;
         fromDays(jd, y, m, d);
         if (m != prevMonth) {
-            // Print month abbrev
             const char* months[] = {"","Jan","Feb","Mar","Apr","May","Jun",
                                     "Jul","Aug","Sep","Oct","Nov","Dec"};
-            std::cout << C::CYAN << std::left << std::setw(6) << months[m] << C::RESET;
+            // Each week column is 3 chars wide; print month name left-padded to 3
+            std::string label = months[m];
+            while ((int)label.size() < 3) label += " ";
+            std::cout << C::CYAN << label << C::RESET;
             prevMonth = m;
         } else {
-            std::cout << "      ";
+            std::cout << "   "; // 3 spaces = one week column
         }
     }
-    std::cout << C::RESET << "\n";
+    std::cout << "\n";
 
     // Print rows: one per day of week
     for (int dow2 = 0; dow2 < 7; dow2++) {
@@ -439,31 +442,30 @@ void ProgressTracker::workoutHeatmap(const std::vector<Workout*>& workouts) {
 
             // Future days
             if (jd > todayJD) {
-                std::cout << C::DIM << "\xe2\x96\xa1\xe2\x96\xa1 " << C::RESET; // □ empty future
+                std::cout << C::DIM << "\xe2\x96\x91\xe2\x96\x91 " << C::RESET; // ░░ future
                 continue;
             }
 
-            // Colour by workout count
+            // Colour by workout count — two full blocks + space = 3 visible cols each cell
             if (count == 0) {
-                std::cout << C::DIM << "\xe2\x96\xa1\xe2\x96\xa1 " << C::RESET;
+                std::cout << C::DIM << "\xe2\x96\x91\xe2\x96\x91 " << C::RESET; // ░░ none
             } else if (count == 1) {
-                std::cout << "\033[32m" << "\xe2\x96\xa3\xe2\x96\xa3 " << C::RESET; // ▣ light
+                std::cout << "\033[32m\xe2\x96\x88\xe2\x96\x88 " << C::RESET;   // ██ green
             } else if (count == 2) {
-                std::cout << "\033[1;32m" << "\xe2\x96\xa3\xe2\x96\xa3 " << C::RESET; // brighter
+                std::cout << "\033[1;32m\xe2\x96\x88\xe2\x96\x88 " << C::RESET; // ██ bright green
             } else {
-                std::cout << "\033[1;36m" << "\xe2\x96\xa3\xe2\x96\xa3 " << C::RESET; // cyan = very active
+                std::cout << "\033[1;36m\xe2\x96\x88\xe2\x96\x88 " << C::RESET; // ██ cyan
             }
         }
         std::cout << "\n";
     }
 
     // Legend
-    std::cout << "\n  " << C::DIM
-              << "Legend: "
-              << C::RESET  << C::DIM   << "\xe2\x96\xa1\xe2\x96\xa1" << C::RESET << " none  "
-              << "\033[32m"            << "\xe2\x96\xa3\xe2\x96\xa3" << C::RESET << " 1 workout  "
-              << "\033[1;32m"          << "\xe2\x96\xa3\xe2\x96\xa3" << C::RESET << " 2 workouts  "
-              << "\033[1;36m"          << "\xe2\x96\xa3\xe2\x96\xa3" << C::RESET << " 3+\n";
+    std::cout << "\n  " << C::DIM << "Legend: " << C::RESET
+              << C::DIM   << "\xe2\x96\x91\xe2\x96\x91" << C::RESET << " none   "
+              << "\033[32m\xe2\x96\x88\xe2\x96\x88"     << C::RESET << " 1 workout   "
+              << "\033[1;32m\xe2\x96\x88\xe2\x96\x88"   << C::RESET << " 2 workouts   "
+              << "\033[1;36m\xe2\x96\x88\xe2\x96\x88"   << C::RESET << " 3+\n";
 
     // Stats
     int activeDays = 0, totalW = (int)workouts.size();
@@ -670,6 +672,6 @@ void ProgressTracker::strengthStandards(
 
     std::cout << "  " << C::DIM
               << "Standards are 1RM multiples of bodyweight (general male population).\n"
-              << "  Ratios differ by gender, age, and build — use as a guide, not a verdict.\n"
+              << "  Ratios differ by sex, age, and build — use as a guide, not a verdict.\n"
               << C::RESET;
 }

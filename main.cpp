@@ -14,9 +14,9 @@
 #define BOX_BR  "\xe2\x95\x9d"   // ╝
 #define BOX_H   "\xe2\x95\x90"   // ═  (double horizontal)
 #define BOX_V   "\xe2\x95\x91"   // ║  (double vertical)
-#define BOX_ML  "\xe2\x95\x9f"   // ╟  (left mid-join)
-#define BOX_MR  "\xe2\x95\xa2"   // ╢  (right mid-join)
-#define BOX_MH  "\xe2\x95\x80"   // ─  (single horizontal, for dividers)
+#define BOX_ML  "\xe2\x95\xa0"   // ╠  (left mid-join, double-double)
+#define BOX_MR  "\xe2\x95\xa3"   // ╣  (right mid-join, double-double)
+#define BOX_MH  "\xe2\x95\x90"   // ═  (double horizontal, matches top/bottom)
 
 // Repeat a UTF-8 box-drawing string n times
 static std::string rep(const char* s, int n) {
