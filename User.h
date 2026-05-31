@@ -12,7 +12,11 @@
 struct WorkoutTemplate {
     std::string name;
     std::string notes;
-    struct ExEntry { std::string exName; std::string muscleGroup; std::string type; };
+    struct ExEntry {
+        std::string exName;
+        std::string muscleGroup;
+        std::string type;
+    };
     std::vector<ExEntry> exercises;
 };
 
@@ -35,25 +39,35 @@ public:
     ~User();
 
     const std::string& getName() const;
-    int getAge() const;
+    int    getAge()    const;
     double getWeight() const;
-    void setWeight(double w);
+    void   setWeight(double w);
 
     ExerciseCatalog& getCatalog();
     std::map<std::string, PersonalRecord>& getPRs();
-    std::map<std::string, double>& getBWLog();
-    std::vector<WorkoutTemplate>& getTemplates();
-    const std::vector<Workout*>& getWorkouts() const;
+    std::map<std::string, double>&         getBWLog();
+    std::vector<WorkoutTemplate>&          getTemplates();
+    const std::vector<Workout*>&           getWorkouts() const;
 
-    void addWorkout(Workout* w);
-    bool deleteWorkout(int idx);
+    void     addWorkout(Workout* w);
+    bool     deleteWorkout(int idx);
     Workout* getWorkout(int idx);
-    int workoutCount() const;
+    int      workoutCount() const;
 
     void listWorkouts(bool brief = true) const;
     void logBodyWeight(const std::string& date, double bw);
     void printProfile() const;
 
-    void saveToFile();
-    static User* loadFromFile();
+    // ── Persistence ──────────────────────────────────────────
+    // Derive a safe filename from a username, e.g. "John Doe" -> "user_John_Doe.txt"
+    static std::string usernameToFilename(const std::string& name);
+
+    // Save this user's data to their personal file
+    void saveToFile() const;
+
+    // Load a user from their personal file (returns nullptr if file missing)
+    static User* loadFromFile(const std::string& filename);
+
+    // Return a list of all saved user filenames found on disk
+    static std::vector<std::string> listSavedUsers();
 };

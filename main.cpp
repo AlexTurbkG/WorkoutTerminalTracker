@@ -6,179 +6,213 @@
 #include <iomanip>
 #include <string>
 
-// ── Box-drawing strings (multi-byte UTF-8, must be string literals not char) ──
-// Each of these is a single box-drawing character encoded as a string.
+// ── Box-drawing macros ───────────────────────────────────────
 #define BOX_TL  "\xe2\x95\x94"   // ╔
 #define BOX_TR  "\xe2\x95\x97"   // ╗
 #define BOX_BL  "\xe2\x95\x9a"   // ╚
 #define BOX_BR  "\xe2\x95\x9d"   // ╝
-#define BOX_H   "\xe2\x95\x90"   // ═  (double horizontal)
-#define BOX_V   "\xe2\x95\x91"   // ║  (double vertical)
-#define BOX_ML  "\xe2\x95\xa0"   // ╠  (left mid-join, double-double)
-#define BOX_MR  "\xe2\x95\xa3"   // ╣  (right mid-join, double-double)
-#define BOX_MH  "\xe2\x95\x90"   // ═  (double horizontal, matches top/bottom)
+#define BOX_H   "\xe2\x95\x90"   // ═
+#define BOX_V   "\xe2\x95\x91"   // ║
+#define BOX_ML  "\xe2\x95\xa0"   // ╠
+#define BOX_MR  "\xe2\x95\xa3"   // ╣
+#define BOX_MH  "\xe2\x95\x90"   // ═
 
-// Repeat a UTF-8 box-drawing string n times
 static std::string rep(const char* s, int n) {
-    std::string out;
-    out.reserve(n * 3);
+    std::string out; out.reserve(n * 3);
     for (int i = 0; i < n; i++) out += s;
     return out;
 }
 
+// ── Shared constants (must match Menus.cpp's C:: namespace) ──
+// We just use the raw codes here to avoid a cross-TU dependency.
+#define CY  "\033[1;36m"   // bold cyan
+#define RST "\033[0m"
+#define BLD "\033[1m"
+#define DIM "\033[2m"
+#define GRN "\033[1;32m"
+#define RED "\033[31m"
+
+static const int INNER = 34;
+
+// ── Banner ───────────────────────────────────────────────────
 static void printBanner() {
-    // Inner width = 34, same as menu, so both boxes align.
-    // Content strings must be exactly 34 visible chars each.
     std::cout << "\n"
-              << "  \033[1;36m" BOX_TL << rep(BOX_H, 34) << BOX_TR "\033[0m\n"
-              << "  \033[1;36m" BOX_V "\033[0m"
-              << "\033[1m" "  WORKOUT TRACKER  v2.0           " "\033[0m"
-              << "\033[1;36m" BOX_V "\033[0m\n"
-              << "  \033[1;36m" BOX_V "\033[0m"
-              << "\033[2m" "  Log. Track. Progress. Dominate. " "\033[0m"
-              << "\033[1;36m" BOX_V "\033[0m\n"
-              << "  \033[1;36m" BOX_BL << rep(BOX_H, 34) << BOX_BR "\033[0m\n\n";
+              << "  " CY BOX_TL << rep(BOX_H, INNER) << BOX_TR RST "\n"
+              << "  " CY BOX_V RST
+              << BLD "  WORKOUT TRACKER  v2.0           " RST
+              << CY BOX_V RST "\n"
+              << "  " CY BOX_V RST
+              << DIM "  Log. Track. Progress. Dominate. " RST
+              << CY BOX_V RST "\n"
+              << "  " CY BOX_BL << rep(BOX_H, INNER) << BOX_BR RST "\n\n";
 }
 
-static void printMainMenu(const User& user) {
-    // Box inner width = 34 cols exactly.
-    // Row anatomy: BOX_V(1) + " [n] "(5) + label(29) + BOX_V(1) = 36 total visible
-    // label field = 34 - 5 = 29 chars — every label string below is exactly 29 chars.
-    const int INNER = 34;
-
-    // Each label is manually padded to exactly 29 visible chars.
-    // Format: "  Text" + spaces to reach 29.
+// ── Main menu with Logout ────────────────────────────────────
+// This function is called from Menus.cpp via extern declaration.
+void printMainMenuFull(const User& user) {
+    // Row: BOX_V(1) + " [n] "(5) + label(29) + BOX_V(1) — label must be exactly 29 chars
     auto row = [](int n, const char* label29) {
-        std::cout << "  \033[1;36m" BOX_V "\033[0m"
-                  << " \033[36m[" << n << "]\033[0m "
-                  << "\033[1m" << label29 << "\033[0m"
-                  << "\033[1;36m" BOX_V "\033[0m\n";
+        // number "[10]" is 4 chars, "[n]" is 3 — pad number field to 4 always
+        std::string num = "[" + std::to_string(n) + "]";
+        while ((int)num.size() < 4) num += " ";
+        std::cout << "  " CY BOX_V RST " "
+                  << "\033[36m" << num << RST " "
+                  << BLD << label29 << RST
+                  << CY BOX_V RST "\n";
     };
 
+    // Stats line — exactly INNER chars
+    std::string stat = " " + std::to_string(user.getWorkouts().size()) + " workouts  |  " + user.getName();
+    while ((int)stat.size() < INNER) stat += ' ';
+    stat = stat.substr(0, INNER);
+
     std::cout << "\n"
-              << "  \033[1;36m" BOX_TL << rep(BOX_H, INNER) << BOX_TR "\033[0m\n"
-              // Title row: BOX_V + 34 chars + BOX_V
-              << "  \033[1;36m" BOX_V "\033[0m"
-              << "\033[1m  MAIN MENU                       \033[0m"
-              << "\033[1;36m" BOX_V "\033[0m\n"
-              << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
+              << "  " CY BOX_TL << rep(BOX_H, INNER) << BOX_TR RST "\n"
+              << "  " CY BOX_V RST
+              << BLD "  MAIN MENU                       " RST
+              << CY BOX_V RST "\n"
+              << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
 
-    //                              1234567890123456789012345678 9
-    row(1, "  Log New Workout            ");
-    row(2, "  Workout History            ");
-    row(3, "  Personal Records           ");
-    row(4, "  Progress Charts            ");
-    row(5, "  Weekly Summary             ");
-    row(6, "  Body Weight Tracker        ");
-    row(7, "  Strength Standards         ");
-    row(8, "  1RM Calculator             ");
-    row(9, "  Workout Templates          ");
+    //             "1234567890123456789012345678 9"  (29 chars)
+    row( 1, "  Log New Workout            ");
+    row( 2, "  Workout History            ");
+    row( 3, "  Personal Records           ");
+    row( 4, "  Progress Charts            ");
+    row( 5, "  Weekly Summary             ");
+    row( 6, "  Body Weight Tracker        ");
+    row( 7, "  Strength Standards         ");
+    row( 8, "  1RM Calculator             ");
+    row( 9, "  Workout Templates          ");
 
-    std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
+    std::cout << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
+    std::cout << "  " CY BOX_V RST
+              << DIM << stat << RST
+              << CY BOX_V RST "\n";
+    std::cout << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
 
-    // Stats row: BOX_V + 34 chars + BOX_V
-    // Build stat string, then pad/truncate to exactly 34 chars
-    std::string statBase = " " + std::to_string(user.getWorkouts().size()) + " workouts logged";
-    while ((int)statBase.size() < INNER) statBase += ' ';
-    statBase = statBase.substr(0, INNER);
-    std::cout << "  \033[1;36m" BOX_V "\033[0m"
-              << "\033[2m" << statBase << "\033[0m"
-              << "\033[1;36m" BOX_V "\033[0m\n";
+    row( 0, "  Save & Exit                ");
+    row(10, "  Log Out                    ");
 
-    std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
-    row(0, "  Save & Exit                ");
-    std::cout << "  \033[1;36m" BOX_BL << rep(BOX_H, INNER) << BOX_BR "\033[0m\n\n";
+    std::cout << "  " CY BOX_BL << rep(BOX_H, INNER) << BOX_BR RST "\n\n";
 }
 
+// ── User-select screen ───────────────────────────────────────
+// Returns a fully loaded User*, or nullptr if the user wants to quit.
+static User* userSelectScreen() {
+    printBanner();
+
+    auto savedFiles = User::listSavedUsers();
+
+    std::cout << "  " CY BOX_TL << rep(BOX_H, INNER) << BOX_TR RST "\n"
+              << "  " CY BOX_V RST
+              << BLD "  SELECT USER                     " RST
+              << CY BOX_V RST "\n"
+              << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
+
+    if (savedFiles.empty()) {
+        std::cout << "  " CY BOX_V RST
+                  << DIM "  No saved users found.           " RST
+                  << CY BOX_V RST "\n";
+    } else {
+        for (int i = 0; i < (int)savedFiles.size(); i++) {
+            // Strip "user_" prefix and ".txt" suffix for display
+            std::string display = savedFiles[i];
+            if (display.size() > 5 && display.substr(0,5) == "user_")
+                display = display.substr(5);
+            if (display.size() > 4 && display.substr(display.size()-4) == ".txt")
+                display = display.substr(0, display.size()-4);
+            // Replace underscores back to spaces
+            for (char& c : display) if (c == '_') c = ' ';
+
+            // Pad to 29 chars for the box
+            std::string line = "  [" + std::to_string(i+1) + "] " + display;
+            while ((int)line.size() < INNER) line += ' ';
+            line = line.substr(0, INNER);
+            std::cout << "  " CY BOX_V RST "\033[36m" << line << RST
+                      << CY BOX_V RST "\n";
+        }
+    }
+
+    std::cout << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
+
+    std::string newLine = "  [" + std::to_string(savedFiles.size()+1) + "] Create new user     ";
+    while ((int)newLine.size() < INNER) newLine += ' ';
+    newLine = newLine.substr(0, INNER);
+    std::cout << "  " CY BOX_V RST "\033[36m" << newLine << RST << CY BOX_V RST "\n";
+
+    std::string exitLine = "  [0] Exit program           ";
+    while ((int)exitLine.size() < INNER) exitLine += ' ';
+    exitLine = exitLine.substr(0, INNER);
+    std::cout << "  " CY BOX_V RST "\033[36m" << exitLine << RST << CY BOX_V RST "\n";
+
+    std::cout << "  " CY BOX_BL << rep(BOX_H, INNER) << BOX_BR RST "\n\n";
+
+    int choice = inputInt("Select: ");
+
+    if (choice == 0) return nullptr;
+
+    // ── Create new user ──────────────────────────────────────
+    if (choice == (int)savedFiles.size() + 1) {
+        std::cout << "\n  " BLD "Create New Profile" RST "\n"
+                  << "  " << std::string(34, '-') << "\n";
+        std::string uname   = inputLine("Name             : ");
+        if (uname.empty()) { std::cout << "  " RED "Name cannot be empty.\n" RST; return nullptr; }
+        int    uage    = inputInt("Age              : ");
+        double uweight = inputDouble("Body weight (kg) : ");
+        User* u = new User(uname, uage, uweight);
+        u->saveToFile();  // create the file immediately
+        std::cout << "\n  " GRN "\xe2\x9c\x94  Profile created for " << uname << "!" RST "\n";
+        return u;
+    }
+
+    // ── Load existing user ───────────────────────────────────
+    if (choice >= 1 && choice <= (int)savedFiles.size()) {
+        User* u = User::loadFromFile(savedFiles[choice - 1]);
+        if (!u) {
+            std::cout << "  " RED "Failed to load user file.\n" RST;
+            return nullptr;
+        }
+        std::cout << "\n  " BLD "Welcome back, " << u->getName() << "!" RST "\n";
+        const auto& wks = u->getWorkouts();
+        if (!wks.empty())
+            std::cout << "  " DIM "Last session: " << wks.back()->getDate()
+                      << "  |  " << wks.size() << " total workouts" RST "\n";
+        return u;
+    }
+
+    std::cout << "  " RED "Invalid choice." RST "\n";
+    return nullptr;
+}
+
+// ── main ─────────────────────────────────────────────────────
 int main() {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
-
-    // Enable ANSI escape codes on Windows 10+
-    // 0x0004 == ENABLE_VIRTUAL_TERMINAL_PROCESSING (avoids missing header on some toolchains)
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
     if (GetConsoleMode(hOut, &dwMode))
         SetConsoleMode(hOut, dwMode | 0x0004);
 
-    User* user = User::loadFromFile();
-
-    printBanner();
-
-    if (!user) {
-        std::cout << "  \033[1mWelcome! Let's set up your profile.\033[0m\n\n";
-        std::string uname   = inputLine("Your name        : ");
-        int         uage    = inputInt("Age              : ");
-        double      uweight = inputDouble("Body weight (kg) : ");
-        user = new User(uname, uage, uweight);
-        std::cout << "\n  \033[1;32m\xe2\x9c\x94  Profile created. Let's get to work!\033[0m\n";
-    } else {
-        std::cout << "  \033[1mWelcome back, " << user->getName() << "!\033[0m\n";
-        const auto& wks = user->getWorkouts();
-        if (!wks.empty()) {
-            std::cout << "  \033[2mLast session: " << wks.back()->getDate()
-                      << "  |  " << wks.size() << " total workouts\033[0m\n";
-        }
-    }
-
+    // Outer loop: keep returning to user-select after logout
     while (true) {
-        printMainMenu(*user);
-        int choice = inputInt("Select: ");
+        User* user = userSelectScreen();
 
-        if (choice == 0) {
-            user->saveToFile();
-            std::cout << "\n  \033[1;32m\xe2\x9c\x94  Progress saved.\033[0m  "
-                      << "\033[2mStay consistent. See you next time!\033[0m\n\n";
+        if (!user) {
+            // User chose Exit (0) or invalid input
+            std::cout << "\n  " DIM "Goodbye!\n\n" RST;
             break;
         }
 
-        switch (choice) {
-            case 1: menuNewWorkout(*user);      break;
-            case 2: menuWorkoutHistory(*user);  break;
-            case 3: menuEditPRs(*user);         break;
-            case 4: {
-                // Progress charts submenu
-                std::cout << "\n  \033[1;36m\xe2\x96\xba Progress Charts\033[0m\n"
-                          << "  " << std::string(72, '-') << "\n"
-                          << "    \033[36m[1]\033[0m Volume progress  (per exercise)\n"
-                          << "    \033[36m[2]\033[0m Volume by muscle group\n"
-                          << "    \033[36m[3]\033[0m Workout heatmap\n"
-                          << "    \033[36m[4]\033[0m Body weight chart\n"
-                          << "    \033[36m[5]\033[0m Muscle frequency\n"
-                          << "    \033[36m[0]\033[0m Back\n";
-                int sub = inputInt("> ");
-                switch (sub) {
-                    case 1: {
-                        std::string ex = inputLine("Exercise name: ");
-                        ProgressTracker::volumeProgressChart(user->getWorkouts(), ex);
-                        break;
-                    }
-                    case 2: ProgressTracker::muscleVolumeChart(user->getWorkouts()); break;
-                    case 3: ProgressTracker::workoutHeatmap(user->getWorkouts());    break;
-                    case 4: ProgressTracker::bodyWeightChart(user->getBWLog());      break;
-                    case 5: menuMuscleFrequency(*user);                              break;
-                    default: break;
-                }
-                break;
-            }
-            case 5: {
-                std::string date = inputLine("Week start date (YYYY-MM-DD): ");
-                ProgressTracker::weeklySummary(user->getWorkouts(), date);
-                break;
-            }
-            case 6: menuBodyWeight(*user); break;
-            case 7: {
-                ProgressTracker::strengthStandards(
-                    user->getPRs(), user->getWeight());
-                break;
-            }
-            case 8: menuCalc1RM();         break;
-            case 9: menuTemplates(*user);  break;
-            default:
-                std::cout << "  \033[31m\xe2\x9c\x96  Invalid choice. Pick 0-9.\033[0m\n";
+        // Inner loop: the actual session
+        SessionResult result = runUserSession(*user);
+        delete user;
+
+        if (result == SessionResult::Exit) {
+            std::cout << "\n  " DIM "Goodbye!\n\n" RST;
+            break;
         }
+        // SessionResult::Logout -> loop back to user-select
     }
 
-    delete user;
     return 0;
 }
