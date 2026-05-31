@@ -10,4 +10,6 @@ Strength|Triceps Pushdown|Triceps|Bar pushdown for triceps|Cable
 2
 29 6 90
 29 4 90
+1
+Template|
 0

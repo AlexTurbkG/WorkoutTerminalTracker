@@ -37,14 +37,14 @@ static const int INNER = 34;
 // ── Banner ───────────────────────────────────────────────────
 static void printBanner() {
     std::cout << "\n"
-              << "  " CY BOX_TL << rep(BOX_H, INNER) << BOX_TR RST "\n"
-              << "  " CY BOX_V RST
+              << "  " RED BOX_TL << rep(BOX_H, INNER) << BOX_TR RST "\n"
+              << "  " RED BOX_V RST
               << BLD "  WORKOUT TRACKER  v2.0           " RST
-              << CY BOX_V RST "\n"
-              << "  " CY BOX_V RST
+              << RED BOX_V RST "\n"
+              << "  " RED BOX_V RST
               << DIM "  Log. Track. Progress. Dominate. " RST
-              << CY BOX_V RST "\n"
-              << "  " CY BOX_BL << rep(BOX_H, INNER) << BOX_BR RST "\n\n";
+              << RED BOX_V RST "\n"
+              << "  " RED BOX_BL << rep(BOX_H, INNER) << BOX_BR RST "\n\n";
 }
 
 // ── Main menu with Logout ────────────────────────────────────
@@ -57,7 +57,7 @@ void printMainMenuFull(const User& user) {
         while ((int)num.size() < 4) num += " ";
         std::cout << "  " CY BOX_V RST " "
                   << "\033[36m" << num << RST " "
-                  << BLD << label29 << RST
+                  << GRN BLD << label29 << RST
                   << CY BOX_V RST "\n";
     };
 
