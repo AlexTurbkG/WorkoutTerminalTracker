@@ -27,55 +27,76 @@ static std::string rep(const char* s, int n) {
 }
 
 static void printBanner() {
+    // Inner width = 34, same as menu, so both boxes align.
+    // Content strings must be exactly 34 visible chars each.
     std::cout << "\n"
-              << "  \033[1;36m" BOX_TL << rep(BOX_H, 50) << BOX_TR "\033[0m\n"
-              << "  \033[1;36m" BOX_V  "\033[0m"
-              << "\033[1m" "        WORKOUT TRACKER  v2.0                   " "\033[0m"
+              << "  \033[1;36m" BOX_TL << rep(BOX_H, 34) << BOX_TR "\033[0m\n"
+              << "  \033[1;36m" BOX_V "\033[0m"
+              << "\033[1m" "  WORKOUT TRACKER  v2.0           " "\033[0m"
               << "\033[1;36m" BOX_V "\033[0m\n"
-              << "  \033[1;36m" BOX_V  "\033[0m"
-              << "\033[2m" "        Log. Track. Progress. Dominate.          " "\033[0m"
+              << "  \033[1;36m" BOX_V "\033[0m"
+              << "\033[2m" "  Log. Track. Progress. Dominate. " "\033[0m"
               << "\033[1;36m" BOX_V "\033[0m\n"
-              << "  \033[1;36m" BOX_BL << rep(BOX_H, 50) << BOX_BR "\033[0m\n\n";
+              << "  \033[1;36m" BOX_BL << rep(BOX_H, 34) << BOX_BR "\033[0m\n\n";
 }
 
 static void printMainMenu(const User& user) {
-    std::cout << "\n"
-              << "  \033[1;36m" BOX_TL << rep(BOX_H, 34) << BOX_TR "\033[0m\n"
-              << "  \033[1;36m" BOX_V  "\033[0m"
-              << "\033[1m  MAIN MENU                          \033[0m"
-              << "\033[1;36m" BOX_V "\033[0m\n"
-              << "  \033[1;36m" BOX_ML << rep(BOX_MH, 34) << BOX_MR "\033[0m\n";
+    // Inner content width = 34 (number of ═ chars in top/bottom border)
+    // Row anatomy (visible cols): ║  [n] ICON LABEL...PAD  ║
+    //   ║ = 1, spaces = 2, [n] = 3, space = 1, icon = 2, space = 1 → 10 fixed
+    //   label + padding must fill the remaining 34 - 10 = 24 cols
+    const int INNER   = 34;
+    const int LABEL_W = 24;
 
-    auto row = [](int n, const char* icon, const char* label) {
-        std::cout << "  \033[1;36m" BOX_V "\033[0m  "
-                  << "\033[36m[" << n << "]\033[0m "
-                  << icon << " "
-                  << "\033[1m" << std::left << std::setw(26) << label << "\033[0m"
+    // Pad a string to exactly `w` visible chars (no ANSI inside label/icon)
+    auto pad = [](const std::string& s, int w) -> std::string {
+        int len = (int)s.size();
+        return (len < w) ? s + std::string(w - len, ' ') : s.substr(0, w);
+    };
+
+    auto row = [&](int n, const char* label) {
+        // number field: [n] or [0] — always 3 visible chars
+        std::string num = "[" + std::to_string(n) + "]";
+        // label padded to LABEL_W
+        std::string lbl = pad(label, LABEL_W);
+        std::cout << "  \033[1;36m" BOX_V "\033[0m "
+                  << "\033[36m" << num << "\033[0m "
+                  << "\033[1m" << lbl << "\033[0m"
                   << "\033[1;36m" BOX_V "\033[0m\n";
     };
 
-    row(1, "\xf0\x9f\x8f\x8b", "Log New Workout");
-    row(2, "\xf0\x9f\x93\x96", "Workout History");
-    row(3, "\xf0\x9f\x8f\x86", "Personal Records");
-    row(4, "\xf0\x9f\x93\x8a", "Progress Charts");
-    row(5, "\xf0\x9f\x93\x85", "Weekly Summary");
-    row(6, "\xe2\x9a\x96 ", "Body Weight Tracker");
-    row(7, "\xf0\x9f\x92\xaa", "Strength Standards");
-    row(8, "\xf0\x9f\xa7\xae", "1RM Calculator");
-    row(9, "\xf0\x9f\x93\x8b", "Workout Templates");
+    // Header title must fill INNER visible chars (we have "  MAIN MENU" = 11 chars)
+    std::string title = pad("  MAIN MENU", INNER);
 
-    std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, 34) << BOX_MR "\033[0m\n";
+    std::cout << "\n"
+              << "  \033[1;36m" BOX_TL << rep(BOX_H, INNER) << BOX_TR "\033[0m\n"
+              << "  \033[1;36m" BOX_V  "\033[0m"
+              << "\033[1m" << title << "\033[0m"
+              << "\033[1;36m" BOX_V "\033[0m\n"
+              << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
 
-    // Stats bar
-    const auto& wks = user.getWorkouts();
-    std::string stat = std::to_string(wks.size()) + " workouts logged";
-    std::cout << "  \033[1;36m" BOX_V "\033[0m  "
-              << "\033[2m" << std::left << std::setw(30) << stat << "\033[0m"
+    row(1, "  Log New Workout");
+    row(2, "  Workout History");
+    row(3, "  Personal Records");
+    row(4, "  Progress Charts");
+    row(5, "  Weekly Summary");
+    row(6, "  Body Weight Tracker");
+    row(7, "  Strength Standards");
+    row(8, "  1RM Calculator");
+    row(9, "  Workout Templates");
+
+    std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
+
+    // Stats bar — pad to INNER visible chars: ║ + space + stat + pad + space + ║
+    // interior = INNER, we use " " on each side = INNER - 2 for the stat
+    std::string stat = pad(" " + std::to_string(user.getWorkouts().size()) + " workouts logged", INNER);
+    std::cout << "  \033[1;36m" BOX_V "\033[0m"
+              << "\033[2m" << stat << "\033[0m"
               << "\033[1;36m" BOX_V "\033[0m\n";
 
-    std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, 34) << BOX_MR "\033[0m\n";
-    row(0, "\xf0\x9f\x9a\xaa", "Save & Exit");
-    std::cout << "  \033[1;36m" BOX_BL << rep(BOX_H, 34) << BOX_BR "\033[0m\n\n";
+    std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
+    row(0, "  Save & Exit");
+    std::cout << "  \033[1;36m" BOX_BL << rep(BOX_H, INNER) << BOX_BR "\033[0m\n\n";
 }
 
 int main() {
