@@ -41,61 +41,52 @@ static void printBanner() {
 }
 
 static void printMainMenu(const User& user) {
-    // Inner content width = 34 (number of ═ chars in top/bottom border)
-    // Row anatomy (visible cols): ║  [n] ICON LABEL...PAD  ║
-    //   ║ = 1, spaces = 2, [n] = 3, space = 1, icon = 2, space = 1 → 10 fixed
-    //   label + padding must fill the remaining 34 - 10 = 24 cols
-    const int INNER   = 34;
-    const int LABEL_W = 24;
+    // Box inner width = 34 cols exactly.
+    // Row anatomy: BOX_V(1) + " [n] "(5) + label(29) + BOX_V(1) = 36 total visible
+    // label field = 34 - 5 = 29 chars — every label string below is exactly 29 chars.
+    const int INNER = 34;
 
-    // Pad a string to exactly `w` visible chars (no ANSI inside label/icon)
-    auto pad = [](const std::string& s, int w) -> std::string {
-        int len = (int)s.size();
-        return (len < w) ? s + std::string(w - len, ' ') : s.substr(0, w);
-    };
-
-    auto row = [&](int n, const char* label) {
-        // number field: [n] or [0] — always 3 visible chars
-        std::string num = "[" + std::to_string(n) + "]";
-        // label padded to LABEL_W
-        std::string lbl = pad(label, LABEL_W);
-        std::cout << "  \033[1;36m" BOX_V "\033[0m "
-                  << "\033[36m" << num << "\033[0m "
-                  << "\033[1m" << lbl << "\033[0m"
+    // Each label is manually padded to exactly 29 visible chars.
+    // Format: "  Text" + spaces to reach 29.
+    auto row = [](int n, const char* label29) {
+        std::cout << "  \033[1;36m" BOX_V "\033[0m"
+                  << " \033[36m[" << n << "]\033[0m "
+                  << "\033[1m" << label29 << "\033[0m"
                   << "\033[1;36m" BOX_V "\033[0m\n";
     };
 
-    // Header title must fill INNER visible chars (we have "  MAIN MENU" = 11 chars)
-    std::string title = pad("  MAIN MENU", INNER);
-
     std::cout << "\n"
               << "  \033[1;36m" BOX_TL << rep(BOX_H, INNER) << BOX_TR "\033[0m\n"
-              << "  \033[1;36m" BOX_V  "\033[0m"
-              << "\033[1m" << title << "\033[0m"
+              // Title row: BOX_V + 34 chars + BOX_V
+              << "  \033[1;36m" BOX_V "\033[0m"
+              << "\033[1m  MAIN MENU                       \033[0m"
               << "\033[1;36m" BOX_V "\033[0m\n"
               << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
 
-    row(1, "  Log New Workout");
-    row(2, "  Workout History");
-    row(3, "  Personal Records");
-    row(4, "  Progress Charts");
-    row(5, "  Weekly Summary");
-    row(6, "  Body Weight Tracker");
-    row(7, "  Strength Standards");
-    row(8, "  1RM Calculator");
-    row(9, "  Workout Templates");
+    //                              1234567890123456789012345678 9
+    row(1, "  Log New Workout            ");
+    row(2, "  Workout History            ");
+    row(3, "  Personal Records           ");
+    row(4, "  Progress Charts            ");
+    row(5, "  Weekly Summary             ");
+    row(6, "  Body Weight Tracker        ");
+    row(7, "  Strength Standards         ");
+    row(8, "  1RM Calculator             ");
+    row(9, "  Workout Templates          ");
 
     std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
 
-    // Stats bar — pad to INNER visible chars: ║ + space + stat + pad + space + ║
-    // interior = INNER, we use " " on each side = INNER - 2 for the stat
-    std::string stat = pad(" " + std::to_string(user.getWorkouts().size()) + " workouts logged", INNER);
+    // Stats row: BOX_V + 34 chars + BOX_V
+    // Build stat string, then pad/truncate to exactly 34 chars
+    std::string statBase = " " + std::to_string(user.getWorkouts().size()) + " workouts logged";
+    while ((int)statBase.size() < INNER) statBase += ' ';
+    statBase = statBase.substr(0, INNER);
     std::cout << "  \033[1;36m" BOX_V "\033[0m"
-              << "\033[2m" << stat << "\033[0m"
+              << "\033[2m" << statBase << "\033[0m"
               << "\033[1;36m" BOX_V "\033[0m\n";
 
     std::cout << "  \033[1;36m" BOX_ML << rep(BOX_MH, INNER) << BOX_MR "\033[0m\n";
-    row(0, "  Save & Exit");
+    row(0, "  Save & Exit                ");
     std::cout << "  \033[1;36m" BOX_BL << rep(BOX_H, INNER) << BOX_BR "\033[0m\n\n";
 }
 
