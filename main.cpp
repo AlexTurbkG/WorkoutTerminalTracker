@@ -74,15 +74,15 @@ void printMainMenuFull(const User& user) {
               << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
 
     //             "1234567890123456789012345678 9"  (29 chars)
-    row( 1, "  Log New Workout            ");
-    row( 2, "  Workout History            ");
-    row( 3, "  Personal Records           ");
-    row( 4, "  Progress Charts            ");
-    row( 5, "  Weekly Summary             ");
-    row( 6, "  Body Weight Tracker        ");
-    row( 7, "  Strength Standards         ");
-    row( 8, "  1RM Calculator             ");
-    row( 9, "  Workout Templates          ");
+    row( 1, " Log New Workout            ");
+    row( 2, " Workout History            ");
+    row( 3, " Personal Records           ");
+    row( 4, " Progress Charts            ");
+    row( 5, " Weekly Summary             ");
+    row( 6, " Body Weight Tracker        ");
+    row( 7, " Strength Standards         ");
+    row( 8, " 1RM Calculator             ");
+    row( 9, " Workout Templates          ");
 
     std::cout << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
     std::cout << "  " CY BOX_V RST
@@ -90,8 +90,8 @@ void printMainMenuFull(const User& user) {
               << CY BOX_V RST "\n";
     std::cout << "  " CY BOX_ML << rep(BOX_MH, INNER) << BOX_MR RST "\n";
 
-    row( 0, "  Save & Exit                ");
-    row(10, "  Log Out                    ");
+    row( 0, " Save & Exit                ");
+    row(10, " Log Out                    ");
 
     std::cout << "  " CY BOX_BL << rep(BOX_H, INNER) << BOX_BR RST "\n\n";
 }
